@@ -49,10 +49,9 @@
         }
 
         .buttons {
-            width: 50px;
-            display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
+            width: 100%;
+            height: 80px; /* фиксируем высоту */
+            position: relative;
             margin-bottom: 15px;
         }
 
@@ -65,15 +64,12 @@
             transition: transform 0.2s, background 0.3s;
             background: #fff;
             color: #000;
-            flex: 1 1 40%;
-            margin: 5px;
-            min-width: 100px;
+            position: absolute;
         }
 
-        button:hover {
-            background: #0ff;
-            color: #000;
-            transform: scale(1.05);
+        #yes {
+            left: 20px;
+            bottom: 5px;
         }
 
         #message {
@@ -89,8 +85,11 @@
             border-radius: 15px;
             display: none;
         }
-        #yes{
-            width: 50px;
+
+        button:hover {
+            background: #0ff;
+            color: #000;
+            transform: scale(1.05);
         }
     </style>
 </head>
@@ -99,7 +98,7 @@
     <h1>mellstroy.game</h1>
     <div class="question">отправь своему другу <br>Ты гей?</div>
 
-    <div class="buttons">
+    <div class="buttons" id="buttons">
         <button id="yes">Да</button>
         <button id="no">Нет</button>
     </div>
@@ -112,53 +111,81 @@
 </div>
 
 <script>
-    const noBtn = document.getElementById('no');
+    const buttons = document.getElementById('buttons');
     const yesBtn = document.getElementById('yes');
+    const noBtn = document.getElementById('no');
     const message = document.getElementById('message');
-    const video = document.getElementById('video');
-
-    // кнопка "Нет" случайно двигается только на больших экранах
-    const sensitivity = 80;
     const padding = 5;
 
-    const moveButton = () => {
-        if (window.innerWidth < 480) return; // не двигаем на телефонах
+    // Получаем координаты кнопки "Да" внутри buttons
+    const getYesPosition = () => {
+        return {
+            x: yesBtn.offsetLeft,
+            y: yesBtn.offsetTop,
+            width: yesBtn.offsetWidth,
+            height: yesBtn.offsetHeight
+        };
+    };
 
+    // Случайное перемещение кнопки "Нет" внутри buttons
+    const moveButton = () => {
         const btnWidth = noBtn.offsetWidth;
         const btnHeight = noBtn.offsetHeight;
-        const content = document.getElementById('content');
-        const maxX = content.clientWidth - btnWidth - padding;
-        const maxY = content.clientHeight - btnHeight - padding;
+        const containerWidth = buttons.clientWidth;
+        const containerHeight = buttons.clientHeight;
 
-        const x = Math.random() * (maxX - padding) + padding;
-        const y = Math.random() * (maxY - padding) + padding;
+        const yesPos = getYesPosition();
+        let x, y, tries = 0;
 
-        noBtn.style.position = 'absolute';
+        do {
+            x = Math.random() * (containerWidth - btnWidth - 2*padding) + padding;
+            y = Math.random() * (containerHeight - btnHeight - 2*padding) + padding;
+            tries++;
+        } while (
+            x + btnWidth > yesPos.x &&
+            x < yesPos.x + yesPos.width &&
+            y + btnHeight > yesPos.y &&
+            y < yesPos.y + yesPos.height &&
+            tries < 100
+            );
+
         noBtn.style.left = `${x}px`;
         noBtn.style.top = `${y}px`;
     };
 
-    window.addEventListener('load', moveButton);
-
-    document.getElementById('content').addEventListener('mousemove', (e) => {
-        if (window.innerWidth < 480) return;
-
+    // ПК: движение при наведении мыши
+    buttons.addEventListener('mousemove', (e) => {
         const rect = noBtn.getBoundingClientRect();
-        const contentRect = document.getElementById('content').getBoundingClientRect();
-        const btnCenterX = rect.left + rect.width / 2 - contentRect.left;
-        const btnCenterY = rect.top + rect.height / 2 - contentRect.top;
-        const distX = e.clientX - contentRect.left - btnCenterX;
-        const distY = e.clientY - contentRect.top - btnCenterY;
-        const distance = Math.sqrt(distX ** 2 + distY ** 2);
+        const containerRect = buttons.getBoundingClientRect();
+        const btnCenterX = rect.left + rect.width/2 - containerRect.left;
+        const btnCenterY = rect.top + rect.height/2 - containerRect.top;
 
-        if (distance < sensitivity) moveButton();
+        const distX = e.clientX - containerRect.left - btnCenterX;
+        const distY = e.clientY - containerRect.top - btnCenterY;
+        const distance = Math.sqrt(distX**2 + distY**2);
+
+        const effectiveSensitivity = window.innerWidth < 480 ? 50 : 80;
+        if(distance < effectiveSensitivity) moveButton();
     });
 
+    // Мобильные: движение при касании
+    noBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        moveButton();
+    });
+
+    // ПК: клик
+    noBtn.addEventListener('click', moveButton);
+
+    // Клик по "Да"
     yesBtn.addEventListener('click', () => {
         message.style.opacity = '1';
-        video.style.display = 'block';
-        video.play();
+        document.getElementById('video').style.display = 'block';
+        document.getElementById('video').play();
     });
+
+    // начальная позиция
+    window.addEventListener('load', moveButton);
 </script>
 </body>
 </html>
