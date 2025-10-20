@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mellstroy.game</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background: radial-gradient(circle at center, #111, #000);
+            color: white;
+            overflow: hidden;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #0ff;
+        }
+
+        .content {
+            width: 50vw;
+            height: 50vh;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(0, 255, 255, 0.2);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+            text-align: center;
+        }
+
+        .question {
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            line-height: 1.4;
+        }
+
+        .buttons {
+            position: relative;
+            width: 100%;
+            height: 100px;
+        }
+
+        button {
+            font-size: 1.4rem;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s;
+            background: #fff;
+            color: #000;
+            position: absolute;
+        }
+
+        button:hover {
+            background: #0ff;
+            color: #000;
+            transform: scale(1.1);
+        }
+
+        #message {
+            font-size: 2rem;
+            margin-top: 20px;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        video {
+            margin-top: 20px;
+            max-width: 80%;
+            border-radius: 15px;
+            display: none;
+        }
+        #no{
+            left:50px;
+            z-index: 999;
+        }
+        #yes{
+            right: 50px;
+        }
+    </style>
+</head>
+<body>
+<div class="content" id="content">
+    <h1>mellstroy.game</h1>
+    <div class="question">отправь своему другу <br>Ты гей?</div>
+
+    <button id="yes">Да</button>
+    <button id="no">Нет</button>
+
+    <div id="message">Я это знал 😎</div>
+    <video id="video" controls>
+        <source src="video/mellstroy.MP4" type="video/mp4" />
+        Ваш браузер не поддерживает видео.
+    </video>
+</div>
+
+<script>
+    const content = document.getElementById('content');
+    const noBtn = document.getElementById('no');
+    const yesBtn = document.getElementById('yes');
+    const message = document.getElementById('message');
+    const video = document.getElementById('video');
+
+    const sensitivity = 80;
+    const padding = 5; // отступ от края
+
+    // функция случайного перемещения кнопки внутри контейнера
+    const moveButton = () => {
+        const btnWidth = noBtn.offsetWidth;
+        const btnHeight = noBtn.offsetHeight;
+
+        const maxX = content.clientWidth - btnWidth - padding;
+        const maxY = content.clientHeight - btnHeight - padding;
+
+        const x = Math.random() * (maxX - padding) + padding;
+        const y = Math.random() * (maxY - padding) + padding;
+
+        noBtn.style.left = `${x}px`;
+        noBtn.style.top = `${y}px`;
+    };
+
+    // начальная позиция
+    window.addEventListener('load', () => {
+        moveButton();
+    });
+
+    // движение кнопки при наведении
+    content.addEventListener('mousemove', (e) => {
+        const rect = noBtn.getBoundingClientRect();
+        const contentRect = content.getBoundingClientRect();
+
+        const btnCenterX = rect.left + rect.width / 2 - contentRect.left;
+        const btnCenterY = rect.top + rect.height / 2 - contentRect.top;
+
+        const distX = e.clientX - contentRect.left - btnCenterX;
+        const distY = e.clientY - contentRect.top - btnCenterY;
+        const distance = Math.sqrt(distX ** 2 + distY ** 2);
+
+        if (distance < sensitivity) moveButton();
+    });
+
+    // клик по "Да"
+    yesBtn.addEventListener('click', () => {
+        message.style.opacity = '1';
+        video.style.display = 'block';
+        video.play();
+    });
+</script>
+
+</body>
+</html>
